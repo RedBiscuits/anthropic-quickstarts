@@ -34,7 +34,7 @@ Transform the experimental Streamlit-based Computer Use Agent into a **productio
 
 ```bash
 # Clone and setup
-git clone https://github.com/anthropics/anthropic-quickstarts.git
+git clone https://github.com/RedBiscuits/anthropic-quickstarts.git
 cd anthropic-quickstarts/computer-use-backend
 
 # Set up API key

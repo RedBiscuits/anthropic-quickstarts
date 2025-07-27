@@ -55,8 +55,8 @@ This project transforms the original Streamlit-based Computer Use Agent into a p
 
 ```bash
 # Clone the repository
-git clone <repository>
-cd computer-use-backend
+git clone https://github.com/RedBiscuits/anthropic-quickstarts.git
+cd anthropic-quickstarts/computer-use-backend
 
 # Set up your API key
 cp .env.example .env

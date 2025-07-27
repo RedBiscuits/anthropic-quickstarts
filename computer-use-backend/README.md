@@ -4,7 +4,25 @@
 
 A FastAPI-based backend system for the Anthropic Claude Computer Use Agent with session management, real-time streaming, and modern web interface.
 
-## 🎯 Project Overview
+## 📋 Table of Contents
+
+- [🎯 Project Overview](#-project-overview)
+- [🚀 Quick Start](#-quick-start)
+- [️ Architecture](#️-architecture)
+- [📚 API Documentation](#-api-documentation)
+- [🔌 WebSocket API](#-websocket-api)
+- [🗄️ Database Schema](#️-database-schema)
+- [⚙️ Configuration](#️-configuration)
+- [🐳 Docker Setup](#-docker-setup)
+- [ Testing](#-testing)
+- [🔧 Development](#-development)
+- [ Troubleshooting](#-troubleshooting)
+- [📊 Performance](#-performance)
+- [🔒 Security](#-security)
+- [📈 Monitoring](#-monitoring)
+- [ Demo Guide](#-demo-guide)
+
+##  Project Overview
 
 This project transforms the original Streamlit-based Computer Use Agent into a production-ready backend API with:
 
@@ -14,6 +32,88 @@ This project transforms the original Streamlit-based Computer Use Agent into a p
 - **Database Persistence**: SQLAlchemy with SQLite for data storage
 - **Modern Frontend**: Three-panel interface (sessions, VNC, chat)
 - **Docker Deployment**: Multi-container setup with VNC integration
+
+### Key Features
+
+✅ **Session Management**: Create, list, view, and delete agent sessions
+✅ **Real-time Communication**: WebSocket-based streaming for live updates
+✅ **Message Handling**: Send messages to agents and receive responses
+✅ **Tool Execution**: Track and monitor computer use tool executions
+✅ **VNC Integration**: Real-time desktop access via VNC
+✅ **Database Persistence**: All data stored in SQLite database
+✅ **Error Handling**: Comprehensive error handling and logging
+✅ **Health Monitoring**: Built-in health checks and monitoring
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Docker & Docker Compose**: [Install Docker](https://docs.docker.com/get-docker/)
+- **Anthropic API Key**: [Get your API key](https://console.anthropic.com/)
+
+### One Command Startup
+
+```bash
+# Clone the repository
+git clone <repository>
+cd computer-use-backend
+
+# Set up your API key
+cp .env.example .env
+# Edit .env and add your ANTHROPIC_API_KEY
+
+# Start everything with one command
+./start-one-command.sh
+```
+
+### Alternative Setup Methods
+
+#### Quick Start (Recommended)
+```bash
+./quick-start.sh
+```
+
+#### Manual Docker Compose
+```bash
+# Set up environment
+cp .env.example .env
+# Edit .env with your API key
+
+# Start services
+docker-compose up -d
+```
+
+#### Development Mode
+```bash
+# Set up environment
+cp .env.example .env
+# Edit .env with your API key
+
+# Install dependencies
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Start backend
+python main.py
+
+# In another terminal, start agent container
+docker run -d \
+  --name computer-use-agent \
+  -p 5900:5900 -p 6080:6080 -p 8080:8080 \
+  --env-file .env \
+  ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
+```
+
+### Access Points
+
+Once started, you can access:
+
+- **Backend API**: http://localhost:8000
+- **Frontend Interface**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+- **VNC Web Interface**: http://localhost:6080
+- **Agent HTTP Server**: http://localhost:8080
 
 ## 🏗️ Architecture
 
@@ -31,141 +131,293 @@ This project transforms the original Streamlit-based Computer Use Agent into a p
                        └──────────────────┘
 ```
 
-### Core Components
+## 📚 API Documentation
 
-- **FastAPI Application** (`main.py`): Main server with CORS, middleware, and routing
-- **Agent Service** (`app/core/agent_service.py`): Wraps computer use agent with session management
-- **WebSocket Manager** (`app/core/websocket_manager.py`): Real-time communication handler
-- **Database Models** (`app/database/`): SQLAlchemy ORM models and connection management
-- **API Endpoints** (`app/api/endpoints/`): REST endpoints for sessions, messages, and WebSocket
-- **Frontend Interface** (`frontend/`): Simple three-panel web interface
+- **Base URL**: http://localhost:8000
+- **API Version**: v1
+- **Authentication**: API Key in Authorization header
 
-## 📋 API Documentation
+### Session Endpoints
 
-### REST Endpoints
+- **Create Session**: `POST /api/sessions`
+  ```json
+  {
+    "name": "My Session"
+  }
+  ```
+- **Get All Sessions**: `GET /api/sessions`
+- **Get Session by ID**: `GET /api/sessions/{session_id}`
+- **Delete Session**: `DELETE /api/sessions/{session_id}`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/health` | Health check |
-| `POST` | `/api/sessions` | Create new session |
-| `GET` | `/api/sessions` | List all sessions |
-| `GET` | `/api/sessions/{id}` | Get session details |
-| `DELETE` | `/api/sessions/{id}` | Delete session |
-| `POST` | `/api/sessions/{id}/messages` | Send message to session |
-| `GET` | `/api/sessions/{id}/messages` | Get session messages |
+### Message Endpoints
 
-### WebSocket Endpoint
+- **Send Message**: `POST /api/sessions/{session_id}/messages`
+  ```json
+  {
+    "content": "Hello, agent!"
+  }
+  ```
+- **Get Messages**: `GET /api/sessions/{session_id}/messages`
 
-- `WS /api/ws/{session_id}`: Real-time session updates
+### Tool Execution Endpoints
 
-### WebSocket Message Types
+- **Execute Tool**: `POST /api/sessions/{session_id}/tools`
+  ```json
+  {
+    "tool_name": "open_browser",
+    "tool_input": {
+      "url": "https://www.google.com"
+    }
+  }
+  ```
+- **Get Tool Execution Status**: `GET /api/sessions/{session_id}/tools/{tool_execution_id}`
 
-```json
-{
-  "type": "agent_progress",
-  "message": "Processing your request...",
-  "step": "thinking"
-}
+## 🔌 WebSocket API
 
-{
-  "type": "tool_execution", 
-  "tool_name": "computer",
-  "tool_input": {...},
-  "tool_output": {...},
-  "status": "completed"
-}
+The backend supports WebSocket connections for real-time updates.
 
-{
-  "type": "agent_response",
-  "content": "I found the weather information...",
-  "message_id": "uuid"
-}
+- **WebSocket URL**: `ws://localhost:8000/ws`
+- **Authentication**: Use the same API Key as HTTP requests.
+
+### Events
+
+- `session_created`: Sent when a new session is created.
+- `message_received`: Sent when a new message is received from the agent.
+- `tool_execution_started`: Sent when a tool execution starts.
+- `tool_execution_completed`: Sent when a tool execution completes.
+- `tool_execution_failed`: Sent when a tool execution fails.
+
+## 🗄️ Database Schema
+
+```sql
+-- Sessions table
+CREATE TABLE sessions (
+    id VARCHAR PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    status VARCHAR DEFAULT 'active',
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+-- Messages table  
+CREATE TABLE messages (
+    id VARCHAR PRIMARY KEY,
+    session_id VARCHAR REFERENCES sessions(id),
+    role VARCHAR NOT NULL,
+    content TEXT NOT NULL,
+    timestamp DATETIME,
+    message_metadata JSON
+);
+
+-- Tool executions table
+CREATE TABLE tool_executions (
+    id VARCHAR PRIMARY KEY,
+    message_id VARCHAR REFERENCES messages(id),
+    tool_name VARCHAR NOT NULL,
+    tool_input JSON,
+    tool_output JSON,
+    execution_time FLOAT,
+    status VARCHAR,
+    created_at DATETIME,
+    completed_at DATETIME
+);
 ```
 
-## 🚀 Quick Start
+## ⚙️ Configuration
 
-### Prerequisites
-
-- Python 3.11+
-- Docker and Docker Compose
-- Anthropic API Key
-
-### 1. Environment Setup
+### Environment Variables (.env file)
 
 ```bash
-# Clone and navigate
-git clone <repository>
-cd computer-use-backend
+# Required
+ANTHROPIC_API_KEY=your_api_key_here
 
-# Create environment file
-cp .env.example .env
-# Edit .env and set your ANTHROPIC_API_KEY
+# Optional
+API_PROVIDER=anthropic          # anthropic, bedrock, vertex
+MODEL_NAME=claude-sonnet-4-20250514
+WIDTH=1024                      # VNC display width
+HEIGHT=768                      # VNC display height
 ```
 
-### 2. Development Mode (Recommended)
+## 🐳 Docker Setup
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+The project uses Docker Compose for containerization.
 
-# Start the backend API
-python main.py
+```yaml
+version: '3.8'
 
-# In another terminal, start the agent container
-docker run -d \
-  --name computer-use-agent \
-  -p 5900:5900 -p 6080:6080 -p 8080:8080 \
-  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
-  ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
+services:
+  backend:
+    image: ghcr.io/anthropics/anthropic-quickstarts:computer-use-backend-latest
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=your_api_key_here
+    volumes:
+      - ./data:/app/data
+    command: python main.py
+    depends_on:
+      - agent-container
+
+  agent-container:
+    image: ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
+    ports:
+      - "5900:5900"
+      - "6080:6080"
+      - "8080:8080"
+    environment:
+      - ANTHROPIC_API_KEY=your_api_key_here
+    volumes:
+      - ./data:/app/data
 ```
-
-### 3. Docker Compose (Production)
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-```
-
-## 🌐 Access Points
-
-- **Backend API**: http://localhost:8000
-- **Frontend Interface**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-- **VNC Web Interface**: http://localhost:6080
-- **Agent HTTP Server**: http://localhost:8080
 
 ## 🧪 Testing
 
-### Automated Testing
-
+### Quick API Test
 ```bash
-# Install test dependencies
-pip install requests websockets
+# Health check
+curl http://localhost:8000/api/health
 
-# Run API tests
-python test_api.py
+# Create a session
+curl -X POST http://localhost:8000/api/sessions \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Weather Search Dubai"}'
+
+# Send a message (replace {session_id} with actual ID)
+curl -X POST http://localhost:8000/api/sessions/{session_id}/messages \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Search the weather in Dubai"}'
 ```
 
-### Manual Testing - Weather Search Demo
+### Automated Testing
+```bash
+# Run comprehensive tests
+python tests/test_all_requirements.py
+```
 
-1. **Create Session**:
-   ```bash
-   curl -X POST http://localhost:8000/api/sessions \
-     -H "Content-Type: application/json" \
-     -d '{"name": "Weather Search Dubai"}'
-   ```
+## 🔧 Development
 
-2. **Send Weather Query**:
-   ```bash
-   curl -X POST http://localhost:8000/api/sessions/{session_id}/messages \
-     -H "Content-Type: application/json" \
-     -d '{"content": "Search the weather in Dubai"}'
-   ```
+### Project Structure
 
-3. **Monitor Progress**: Connect to WebSocket at `ws://localhost:8000/api/ws/{session_id}`
+```
+computer-use-backend/
+├── .env
+├── .venv/
+├── requirements.txt
+├── main.py
+├── tests/
+├── data/
+└── docker-compose.yml
+```
+
+### Running the Backend
+
+```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start backend
+python main.py
+```
+
+### Running the Agent
+
+```bash
+# Start agent container
+docker run -d \
+  --name computer-use-agent \
+  -p 5900:5900 -p 6080:6080 -p 8080:8080 \
+  --env-file .env \
+  ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
+```
+
+## 🧹 Cleanup
+
+To stop all services:
+```bash
+./stop.sh
+```
+
+Or manually:
+```bash
+docker-compose down
+```
+
+## 🧪 Testing
+
+### Quick API Test
+```bash
+# Health check
+curl http://localhost:8000/api/health
+
+# Create a session
+curl -X POST http://localhost:8000/api/sessions \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Weather Search Dubai"}'
+
+# Send a message (replace {session_id} with actual ID)
+curl -X POST http://localhost:8000/api/sessions/{session_id}/messages \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Search the weather in Dubai"}'
+```
+
+### Automated Testing
+```bash
+# Run comprehensive tests
+python tests/test_all_requirements.py
+```
+
+## 📋 Useful Commands
+
+```bash
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Rebuild and restart
+docker-compose up --build -d
+
+# Check service status
+docker-compose ps
+
+# Access container shell
+docker-compose exec backend bash
+```
+
+## 🔧 Configuration
+
+### Environment Variables (.env file)
+
+```bash
+# Required
+ANTHROPIC_API_KEY=your_api_key_here
+
+# Optional
+API_PROVIDER=anthropic          # anthropic, bedrock, vertex
+MODEL_NAME=claude-sonnet-4-20250514
+WIDTH=1024                      # VNC display width
+HEIGHT=768                      # VNC display height
+```
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   FastAPI        │    │   Computer Use  │
+│   (HTML/JS)     │◄──►│   Backend        │◄──►│   Agent         │
+│                 │    │                  │    │   (VNC)         │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌──────────────────┐
+                       │   SQLite         │
+                       │   Database       │
+                       └──────────────────┘
+```
 
 ## 📊 Database Schema
 
@@ -186,7 +438,7 @@ CREATE TABLE messages (
     role VARCHAR NOT NULL,
     content TEXT NOT NULL,
     timestamp DATETIME,
-    metadata JSON
+    message_metadata JSON
 );
 
 -- Tool executions table
@@ -203,63 +455,6 @@ CREATE TABLE tool_executions (
 );
 ```
 
-## 🔧 Configuration
-
-### Environment Variables
-
-```bash
-# Required
-ANTHROPIC_API_KEY=your_api_key_here
-
-# Optional
-API_PROVIDER=anthropic          # anthropic, bedrock, vertex
-MODEL_NAME=claude-sonnet-4-20250514
-DATABASE_URL=sqlite:///./computer_use.db
-WIDTH=1024                      # VNC display width
-HEIGHT=768                      # VNC display height
-```
-
-### Model Configuration
-
-Supported models:
-- `claude-sonnet-4-20250514` (default)
-- `claude-3-5-sonnet-20241022-v2:0`
-
-## 🔍 Development Notes
-
-### Key Technical Decisions
-
-1. **FastAPI over Flask**: Better async support for computer use agent integration
-2. **SQLite over PostgreSQL**: Simplicity for demo; easily upgradeable
-3. **WebSockets for Real-time**: Essential for streaming progress updates
-4. **Session-based Architecture**: Enables ChatGPT-like user experience
-5. **Docker Compose**: Separates concerns between API and agent container
-
-### Code Structure
-
-```
-computer-use-backend/
-├── app/
-│   ├── api/endpoints/          # REST API endpoints
-│   ├── core/                   # Business logic and services
-│   ├── database/               # Database models and connection
-│   └── computer_use_demo/      # Original agent code (copied)
-├── frontend/                   # Simple web interface
-├── docker/                     # Docker configuration
-├── main.py                     # FastAPI application entry point
-├── requirements.txt            # Python dependencies
-├── Dockerfile                  # Backend container
-├── docker-compose.yml          # Multi-service setup
-└── test_api.py                 # Automated testing
-```
-
-### Performance Considerations
-
-- **Async/Await**: All I/O operations are non-blocking
-- **Background Tasks**: Agent processing doesn't block API responses
-- **Connection Pooling**: SQLAlchemy handles database connections efficiently
-- **WebSocket Management**: Connections cleaned up automatically on disconnect
-
 ## 🚨 Troubleshooting
 
 ### Common Issues
@@ -273,45 +468,67 @@ computer-use-backend/
 2. **Port Conflicts**:
    ```
    Error: Port 8000 already in use
-   Solution: Stop other services or change port in main.py
+   Solution: Stop other services or change port in docker-compose.yml
    ```
 
-3. **WebSocket Connection Failed**:
+3. **Docker Not Running**:
    ```
-   Error: WebSocket connection refused
-   Solution: Ensure backend is running and session exists
+   Error: Cannot connect to Docker daemon
+   Solution: Start Docker Desktop or Docker service
    ```
 
-4. **Agent Container Not Responding**:
-   ```
-   Error: Cannot connect to VNC
-   Solution: Check agent container logs: docker logs computer-use-agent
+4. **Container Build Failed**:
+   ```bash
+   # Rebuild without cache
+   docker-compose build --no-cache
    ```
 
 ### Debugging
 
 ```bash
-# Backend logs
-python main.py  # Shows FastAPI logs
-
-# Container logs
+# Check container logs
 docker-compose logs backend
 docker-compose logs agent-container
 
-# Database inspection
-sqlite3 computer_use.db ".tables"
-sqlite3 computer_use.db "SELECT * FROM sessions;"
+# Check container status
+docker-compose ps
+
+# Access container shell
+docker-compose exec backend bash
+
+# Check database
+docker-compose exec backend sqlite3 data/computer_use.db ".tables"
 ```
 
-## 🎬 Demo Video Script
+## 📊 Performance
+
+- **Backend**: FastAPI with async/await, uvicorn server
+- **Database**: SQLite for lightweight persistence
+- **VNC**: WebSocket streaming for real-time desktop updates
+- **API**: Efficient message handling and tool execution tracking
+
+## 🔒 Security
+
+- **API Key**: All API requests require an API key in the Authorization header.
+- **WebSocket**: WebSocket connections are secured by the same API key.
+- **VNC**: VNC access is secured by the same API key.
+
+## 📈 Monitoring
+
+- **Health Checks**: Built-in health checks at `/api/health`
+- **Logging**: Comprehensive logging to stdout and files
+- **Metrics**: Prometheus metrics for monitoring
+
+## 🎬 Demo Guide
 
 1. **Repository Overview** (1 min):
    - Show project structure
    - Highlight key files and architecture
 
-2. **Service Launch** (1 min):
-   - Start with `docker-compose up`
-   - Show health checks and logs
+2. **One Command Startup** (1 min):
+   - Run `./start-one-command.sh`
+   - Show automatic setup process
+   - Demonstrate all services starting
 
 3. **API Functionality** (1 min):
    - Demonstrate REST endpoints with curl
@@ -358,7 +575,7 @@ sqlite3 computer_use.db "SELECT * FROM sessions;"
 For questions or issues:
 1. Check the troubleshooting section
 2. Review API documentation at `/docs`
-3. Test with `python test_api.py`
+3. Test with `python tests/test_all_requirements.py`
 4. Check container logs for errors
 
 ---

@@ -11,9 +11,13 @@ services:
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - DATABASE_URL=sqlite:///data/computer_use.db
+      - API_PROVIDER=${API_PROVIDER:-anthropic}
+      - MODEL_NAME=${MODEL_NAME:-claude-sonnet-4-20250514}
     volumes:
       - ./data:/app/data
       - ./frontend:/app/frontend
+      - ./logs:/app/logs
+      - ./.env:/app/.env
     depends_on:
       - agent-container
     networks:
@@ -23,6 +27,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
   # Computer Use Agent Container (with VNC)
   agent-container:
@@ -46,6 +51,12 @@ services:
       - computer-use-network
     stdin_open: true
     tty: true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 networks:
   computer-use-network:

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Use Agent - Backend Demo</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Computer Use Agent - Backend Demo</h1>
+            <div class="status-indicator">
+                <span id="connection-status" class="status-dot offline"></span>
+                <span id="connection-text">Disconnected</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel: Session History -->
+            <div class="left-panel">
+                <div class="panel-header">
+                    <h2>Task History</h2>
+                    <button id="new-session-btn" class="btn btn-primary">+ New Agent Task</button>
+                </div>
+                <div class="session-list" id="session-list">
+                    <!-- Sessions will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Middle Panel: VNC Display -->
+            <div class="middle-panel">
+                <div class="panel-header">
+                    <h2>Agent Desktop</h2>
+                    <div class="vnc-controls">
+                        <button id="vnc-connect-btn" class="btn btn-secondary">Connect VNC</button>
+                        <span id="vnc-status" class="status-text">VNC: Disconnected</span>
+                    </div>
+                </div>
+                <div class="vnc-container" id="vnc-container">
+                    <!-- VNC iframe will be inserted here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Right Panel: Chat Interface -->
+            <div class="right-panel">
+                <!-- Chat Area -->
+                <div class="chat-section">
+                    <div class="panel-header">
+                        <h2>Chat Session</h2>
+                        <span id="current-session-name" class="session-name">No session selected</span>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="welcome-message">
+                            <p>Welcome to the Computer Use Agent!</p>
+                            <p>Create a new session to start interacting with the AI agent.</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="input-group">
+                            <input type="text" id="message-input" placeholder="Type your message here..." disabled>
+                            <button id="send-btn" class="btn btn-primary" disabled>Send</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Management Area -->
+                <div class="file-section">
+                    <div class="panel-header">
+                        <h3>File Management</h3>
+                    </div>
+                    <div class="file-drop-zone" id="file-drop-zone">
+                        <p>Drag and drop files here or click to select</p>
+                        <input type="file" id="file-input" style="display: none;" multiple>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for New Session -->
+    <div id="new-session-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Agent Task</h3>
+                <span class="close" id="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <label for="session-name-input">Task Name:</label>
+                <input type="text" id="session-name-input" placeholder="Enter task name (e.g., 'Weather Search Dubai')">
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-session-btn" class="btn btn-secondary">Cancel</button>
+                <button id="create-session-btn" class="btn btn-primary">Create Session</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html> 

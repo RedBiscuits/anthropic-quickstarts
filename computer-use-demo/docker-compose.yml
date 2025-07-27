@@ -1,0 +1,44 @@
+services:
+  computer-use-agent:
+    image: ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
+    container_name: anthropic-computer-use-agent
+    restart: unless-stopped
+    
+    # Environment variables
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - API_PROVIDER=${API_PROVIDER:-anthropic}
+      - MODEL_NAME=${MODEL_NAME:-claude-sonnet-4-20250514}
+      - DISPLAY=:1
+    
+    # Port mappings
+    ports:
+      - "8501:8501"  # Streamlit web interface
+      - "5900:5900"  # VNC server
+      - "6080:6080"  # noVNC web interface  
+      - "8080:8080"  # Additional services
+    
+    # Volume mappings for persistence
+    volumes:
+      - anthropic-data:/home/computeruse/.anthropic
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    
+    # Additional configuration
+    stdin_open: true
+    tty: true
+    
+    # Security and privileges
+    privileged: false
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+# Named volumes for data persistence
+volumes:
+  anthropic-data:
+    driver: local 

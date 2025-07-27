@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Computer Use Agent Backend API
+  backend:
+    build: .
+    container_name: computer-use-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DATABASE_URL=sqlite:///data/computer_use.db
+    volumes:
+      - ./data:/app/data
+      - ./frontend:/app/frontend
+    depends_on:
+      - agent-container
+    networks:
+      - computer-use-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Computer Use Agent Container (with VNC)
+  agent-container:
+    image: ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
+    container_name: computer-use-agent
+    restart: unless-stopped
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - API_PROVIDER=${API_PROVIDER:-anthropic}
+      - MODEL_NAME=${MODEL_NAME:-claude-sonnet-4-20250514}
+      - DISPLAY=:1
+      - WIDTH=${WIDTH:-1024}
+      - HEIGHT=${HEIGHT:-768}
+    ports:
+      - "5900:5900"  # VNC server
+      - "6080:6080"  # noVNC web interface
+      - "8080:8080"  # Agent HTTP server
+    volumes:
+      - agent-data:/home/computeruse/.anthropic
+    networks:
+      - computer-use-network
+    stdin_open: true
+    tty: true
+
+networks:
+  computer-use-network:
+    driver: bridge
+
+volumes:
+  agent-data:
+    driver: local 
